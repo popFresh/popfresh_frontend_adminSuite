@@ -1,0 +1,50 @@
+import api from "./axios";
+
+//////////////////////////////////////////////////////////////
+// GET PAYMENT DASHBOARD STATS
+//////////////////////////////////////////////////////////////
+
+export const getPaymentStats = async () => {
+
+  const { data } = await api.get(
+    "/payments/stats"
+  );
+
+  return data.data;
+
+};
+
+//////////////////////////////////////////////////////////////
+// GET ALL PAYMENTS
+//////////////////////////////////////////////////////////////
+
+export const getPayments = async (
+  params = {}
+) => {
+
+  const { data } = await api.get(
+    "/payments",
+    {
+      params,
+    }
+  );
+
+  return data.data;
+
+};
+
+//////////////////////////////////////////////////////////////
+// GET PAYMENT BY ID
+//////////////////////////////////////////////////////////////
+
+export const getPaymentById = async (
+  id
+) => {
+
+  const { data } = await api.get(
+    `/payments/${id}`
+  );
+
+  return data.data;
+
+};

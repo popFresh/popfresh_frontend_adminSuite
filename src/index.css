@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  font-size: 15px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% center;
+  }
+
+  to {
+    background-position: -200% center;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(
+    90deg,
+    #d6b86b 0%,
+    #a8c89a 50%,
+    #d6b86b 100%
+  );
+
+  background-size: 200% auto;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  background-clip: text;
+  color: transparent;
+
+  animation: shimmer 4s linear infinite;
+}
+
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.28s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Navigation arrows */
+
+.swiper-button-prev,
+.swiper-button-next {
+  color: #FA7315;
+  transform: scale(0.8);   /* 0.6, 0.7, 0.9, 1.2 etc. */
+}
+
+/* Arrow size */
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 24px;
+}
+
+/* Pagination bullets */
+
+.swiper-pagination-bullet {
+  background: white;
+  opacity: .5;
+}
+
+.swiper-pagination-bullet-active {
+  background: #F97316;
+  opacity: 1;
+}
