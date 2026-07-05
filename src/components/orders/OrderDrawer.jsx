@@ -56,29 +56,32 @@ const fetchOrder = async () => {
 };
 
 const handleWorkflowSave = async (data) => {
-  try {
 
-    await updateOrderStatus(
-      orderDetails.id,
-      data
-    );
+    try {
 
-    // Refresh Orders Page
-    if (onOrderUpdated) {
-      await onOrderUpdated();
+        await updateOrderStatus(
+            orderDetails.id,
+            data
+        );
+
+        await fetchOrder();
+
+        if (onOrderUpdated) {
+            await onOrderUpdated();
+        }
+
+        toast.success(
+            "Order status updated successfully."
+        );
+
+        setShowWorkflow(false);
+
+    } catch (err) {
+
+        console.error(err);
+
     }
 
-    toast.success("Order status updated successfully.");
-
-    setShowWorkflow(false);
-
-    onClose();
-
-  } catch (err) {
-
-    console.error(err);
-
-  }
 };
 
 const actionText = {
@@ -87,9 +90,12 @@ const actionText = {
 
   PROCESSING: "Mark as Packed",
 
-  PACKED: "Mark as Shipped",
+  
+//   PACKED: "Mark as Shipped",
+PACKED: "Open Fulfillment",
 
-  SHIPPED: "Mark as Delivered",
+//   SHIPPED: "Mark as Delivered",
+SHIPPED: "View Fulfillment",
 
   DELIVERED: "Delivered",
 
@@ -425,11 +431,11 @@ orderDetails.shippingPhone}
 </div>
 
           </section>
-
-            {showWorkflow && (
+{showWorkflow && (
     <OrderStatusWorkflow
         order={orderDetails}
         onSave={handleWorkflowSave}
+        refreshOrder={fetchOrder}
     />
 )}
 

@@ -1,19 +1,33 @@
 import OrderStatusForm from "./OrderStatusForm";
+import FulfillmentWorkflow from "./fulfillment/FulfillmentWorkflow";
 
-const OrderStatusWorkflow = ({ order, onSave }) => {
+const OrderStatusWorkflow = ({ order, onSave,refreshOrder, }) => {
   if (!order) return null;
 
   // Orders that can still move to the next stage
-  if (
-    ["PENDING", "PROCESSING", "PACKED", "SHIPPED"].includes(order.status)
-  ) {
-    return (
-      <OrderStatusForm
-        order={order}
-        onSave={onSave}
-      />
-    );
-  }
+  // Pending & Processing
+if (
+  ["PENDING", "PROCESSING"].includes(order.status)
+) {
+  return (
+    <OrderStatusForm
+      order={order}
+      onSave={onSave}
+    />
+  );
+}
+
+// Packed & Shipped
+if (
+  ["PACKED", "SHIPPED"].includes(order.status)
+) {
+  return (
+    <FulfillmentWorkflow
+      order={order}
+      refreshOrder={refreshOrder}
+    />
+  );
+}
 
   // Delivered
   if (order.status === "DELIVERED") {
