@@ -88,16 +88,16 @@ export const getFulfillmentActions = (shipment) => {
 // requests pickup for our account.
 // =====================================================
 
-        // if (!shipment.pickupScheduled) {
+        if (!shipment.pickupScheduled) {
 
-        //     actions.push({
-        //         key: "schedulePickup",
-        //         label: "Schedule Pickup",
-        //         variant: "primary",
-        //         disabled: false,
-        //     });
+            actions.push({
+                key: "schedulePickup",
+                label: "Schedule Pickup",
+                variant: "primary",
+                disabled: false,
+            });
 
-        // }
+        }
 
     }
 

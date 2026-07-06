@@ -11,6 +11,7 @@ import Payments from "../pages/Payments";
 import Team from "../pages/Team";
 
 import Settings from "../pages/Settings";
+import Shipping from "../pages/Shipping";
 
 const AppRoutes = () => {
   return (
@@ -26,6 +27,7 @@ const AppRoutes = () => {
           <Route path="/team" element={<Team />} />
           
           <Route path="/settings" element={<Settings />} />
+          <Route path="/shipping" element={<Shipping />} />
         </Route>
       </Routes>
     </BrowserRouter>

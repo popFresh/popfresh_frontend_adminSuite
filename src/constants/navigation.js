@@ -9,6 +9,7 @@ import {
   UserCog,
   Plug,
   Settings,
+  Truck
 } from "lucide-react";
 
 export const navigation = [
@@ -55,7 +56,11 @@ export const navigation = [
     path: "/team",
     icon: UserCog,
   },
-
+{
+    label: "Shipping",
+    path: "/shipping",
+    icon: Truck,
+  },
   
 
   {
