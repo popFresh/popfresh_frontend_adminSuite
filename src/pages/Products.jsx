@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation,useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ProductsHero from "../components/products/ProductsHero";
 import ProductGrid from "../components/products/ProductGrid";
@@ -20,6 +21,7 @@ import {
   updateProduct,
   deleteProduct,
   uploadImages,
+  getProductById
 } from "../api/product.api";
 
 const Products = () => {
@@ -41,6 +43,9 @@ const Products = () => {
     const [categories, setCategories] = useState([]);
 
     const [saving, setSaving] = useState(false);
+
+    const location = useLocation();
+    const navigate = useNavigate();
 
   // ===========================================
   // FETCH PRODUCTS
@@ -74,6 +79,31 @@ const Products = () => {
     }
 
   };
+
+  useEffect(() => {
+  const openProductFromSearch = async () => {
+    const productId = location.state?.entityId;
+
+    if (!productId) return;
+
+    try {
+      const product = await getProductById(productId);
+
+      setSelectedProduct(product);
+
+      setDrawerOpen(true);
+
+      navigate(location.pathname, {
+        replace: true,
+        state: null,
+      });
+    } catch (error) {
+      console.error("Failed to open product:", error);
+    }
+  };
+
+  openProductFromSearch();
+}, [location.state, navigate]);
 
   const fetchCategories = async () => {
   try {

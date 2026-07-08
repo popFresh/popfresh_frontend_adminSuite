@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { useLocation,useNavigate } from "react-router-dom";
 import CustomersHero from "../components/customers/CustomersHero";
 import CustomersTable from "../components/customers/CustomersTable";
 import CustomerDrawer from "../components/customers/CustomerDrawer";
@@ -52,6 +52,9 @@ const Customers = () => {
   // Spinner only on clicked View button
   const [loadingCustomerId, setLoadingCustomerId] = useState(null);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   //////////////////////////////////////////////////////////
   // FETCH CUSTOMERS
   //////////////////////////////////////////////////////////
@@ -75,6 +78,32 @@ const Customers = () => {
       setLoading(false);
     }
   };
+
+  
+useEffect(() => {
+  const openCustomerFromSearch = async () => {
+    const customerId = location.state?.entityId;
+
+    if (!customerId) return;
+
+    try {
+      const customer = await getCustomerById(customerId);
+
+      setSelectedCustomer(customer);
+
+      setDrawerOpen(true);
+
+      navigate(location.pathname, {
+        replace: true,
+        state: null,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  openCustomerFromSearch();
+}, [location.state]);
 
   //////////////////////////////////////////////////////////
   // FETCH STATS

@@ -5,6 +5,9 @@ const variants = {
   shipped:
     "bg-orange-100 text-orange-700",
 
+    packed:
+    "bg-[#F5F3FF] text-[#7107E7]",
+
   processing:
     "bg-blue-100 text-blue-700",
 

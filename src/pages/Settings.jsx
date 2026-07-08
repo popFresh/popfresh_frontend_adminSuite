@@ -40,9 +40,9 @@ const Settings = () => {
   <ShippingSettings />
 )}
         
-        {activeTab === "integrations" && (
+        {/* {activeTab === "integrations" && (
           <IntegrationSettings />
-        )}
+        )} */}
 
       </div>
     </>
