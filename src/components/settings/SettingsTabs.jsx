@@ -21,11 +21,11 @@ const tabs = [
     label: "Shipping",
     icon: Truck,
   },
-  {
-    id: "integrations",
-    label: "Integrations",
-    icon: PlugZap,
-  },
+  // {
+  //   id: "integrations",
+  //   label: "Integrations",
+  //   icon: PlugZap,
+  // },
 ];
 
 const SettingsTabs = ({

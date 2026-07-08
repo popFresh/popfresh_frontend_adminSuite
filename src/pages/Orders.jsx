@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import {
   getOrders,
   getOrderStats,
+  getOrderById
 } from "../api/order.api";
-
+import { useLocation, useNavigate } from "react-router-dom";
 import OrdersHero from "../components/orders/OrdersHero";
 import OrdersTable from "../components/orders/OrdersTable";
 import OrderDrawer from "../components/orders/OrderDrawer";
 import Pagination from "../components/Pagination";
 import StatCard from "../components/dashboard/StatCard";
+
 
 import {
   ShoppingBag,
@@ -62,7 +64,8 @@ const [pagination, setPagination] = useState({
     useState("newest");
 
   
-
+const location = useLocation();
+const navigate = useNavigate();
   // ==================================================
   // Drawer
   // ==================================================
@@ -102,6 +105,34 @@ const fetchOrders = async (filters = {}) => {
     setLoading(false);
   }
 };
+
+
+useEffect(() => {
+  const openOrderFromSearch = async () => {
+    const orderId = location.state?.entityId;
+
+    if (!orderId) return;
+
+    try {
+      setViewLoadingId(orderId);
+
+      const order = await getOrderById(orderId);
+
+      setSelectedOrder(order);
+      setDrawerOpen(true);
+      navigate(location.pathname, {
+  replace: true,
+  state: null,
+});
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setViewLoadingId(null);
+    }
+  };
+
+  openOrderFromSearch();
+}, [location.state]);
 
   // ==================================================
   // Fetch Dashboard Stats

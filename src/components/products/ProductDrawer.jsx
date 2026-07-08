@@ -282,7 +282,7 @@ const ProductDrawer = ({
                   name="weight"
                   value={form.weight}
                   onChange={handleChange}
-                  placeholder="80g"
+                  placeholder="50"
                   className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-orange-500"
                 />
 

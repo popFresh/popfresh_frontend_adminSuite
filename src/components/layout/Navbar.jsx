@@ -11,7 +11,9 @@ import {
   ShoppingBag,
   Users,
   X,
+  IndianRupee
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 import {
   useState,
@@ -24,7 +26,12 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../theme/ThemeProvider";
 
 import { useDispatch } from "react-redux";
-
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead
+} from "../../api/notification.api";
+import { search as searchApi } from "../../api/search.api";
 import { openMobileSidebar } from "../../redux/slices/sidebarSlice";
 
 const Navbar = () => {
@@ -33,12 +40,17 @@ const Navbar = () => {
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  
 
   /* --------------------------------------- */
   /* Search                                 */
   /* --------------------------------------- */
 
-  const [search, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+const [searchLoading, setSearchLoading] = useState(false);
 
   const [showSearch, setShowSearch] =
     useState(false);
@@ -50,32 +62,10 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] =
     useState(false);
 
-  const [notifications, setNotifications] =
-    useState([
-      {
-        id: 1,
-        title: "New Order Received",
-        subtitle: "Order PF240625001",
-        time: "2 min ago",
-        unread: true,
-      },
+  const [notifications, setNotifications] = useState([]);
 
-      {
-        id: 2,
-        title: "Inventory Running Low",
-        subtitle: "Classic Cheese Popcorn",
-        time: "18 min ago",
-        unread: true,
-      },
-
-      {
-        id: 3,
-        title: "Payment Failed",
-        subtitle: "Order PF240624008",
-        time: "1 hour ago",
-        unread: false,
-      },
-    ]);
+const [notificationLoading, setNotificationLoading] =
+  useState(false);
 
   /* --------------------------------------- */
   /* Profile                                */
@@ -98,63 +88,64 @@ const Navbar = () => {
   /* Global Search Data                      */
   /* --------------------------------------- */
 
-  const searchItems = [
-    {
-      id: 1,
-      type: "Order",
-      title: "PF240625001",
-      icon: ShoppingBag,
-      route: "/orders",
-    },
+ 
+  
 
-    {
-      id: 2,
-      type: "Order",
-      title: "PF240625002",
-      icon: ShoppingBag,
-      route: "/orders",
-    },
 
-    {
-      id: 3,
-      type: "Customer",
-      title: "Rahul Sharma",
-      icon: Users,
-      route: "/customers",
-    },
+  const fetchSearchResults = async (query) => {
+  try {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
 
-    {
-      id: 4,
-      type: "Customer",
-      title: "Priya Verma",
-      icon: Users,
-      route: "/customers",
-    },
+    setSearchLoading(true);
 
-    {
-      id: 5,
-      type: "Product",
-      title: "Classic Cheese Popcorn",
-      icon: Package,
-      route: "/products",
-    },
+    const data = await searchApi(query);
 
-    {
-      id: 6,
-      type: "Product",
-      title: "Caramel Popcorn",
-      icon: Package,
-      route: "/products",
-    },
-  ];
+    setSearchResults(data);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setSearchLoading(false);
+  }
+};
 
-  const filteredResults = searchItems.filter(
-    (item) =>
-      item.title
-        .toLowerCase()
-        .includes(search.toLowerCase())
-  );
+const fetchNotifications = async () => {
+  try {
+    setNotificationLoading(true);
 
+    const data = await getNotifications();
+
+    setNotifications(data);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setNotificationLoading(false);
+  }
+};
+
+const handleNotificationClick = async (
+  notification
+) => {
+  try {
+    if (!notification.isRead) {
+      await markNotificationRead(notification.id);
+    }
+
+    navigate(notification.route, {
+      state: {
+        entityId: notification.entityId,
+      },
+    });
+
+    setShowNotifications(false);
+
+    fetchNotifications();
+  } catch (error) {
+    console.error(error);
+  }
+};
   /* --------------------------------------- */
   /* Keyboard Shortcut                       */
   /* --------------------------------------- */
@@ -182,6 +173,29 @@ const Navbar = () => {
         handleShortcut
       );
   }, []);
+
+  /* --------------------------------------- */
+/* Escape Key                              */
+/* --------------------------------------- */
+
+useEffect(() => {
+  const handleEscape = (e) => {
+    if (e.key === "Escape") {
+      setShowSearch(false);
+    }
+  };
+
+  window.addEventListener(
+    "keydown",
+    handleEscape
+  );
+
+  return () =>
+    window.removeEventListener(
+      "keydown",
+      handleEscape
+    );
+}, []);
     /* --------------------------------------- */
   /* Click Outside Handler                   */
   /* --------------------------------------- */
@@ -222,31 +236,60 @@ const Navbar = () => {
       );
   }, []);
 
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    fetchSearchResults(searchQuery);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [searchQuery]);
+
+useEffect(() => {
+  fetchNotifications();
+}, []);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetchNotifications();
+  }, 30000);
+
+  return () => clearInterval(interval);
+}, []);
+
   /* --------------------------------------- */
   /* Notification Helpers                    */
   /* --------------------------------------- */
+const unreadCount = notifications.filter(
+  (notification) => !notification.isRead
+).length;
 
-  const unreadCount = notifications.filter(
-    (notification) => notification.unread
-  ).length;
+  // const unreadCount = notifications.filter(
+  //   (notification) => notification.unread
+  // ).length;
 
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({
-        ...notification,
-        unread: false,
-      }))
-    );
-  };
+  const markAllAsRead = async () => {
+  try {
+    await markAllNotificationsRead();
+
+    await fetchNotifications();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   /* --------------------------------------- */
   /* Search Navigation                       */
   /* --------------------------------------- */
 
   const handleSearchClick = (item) => {
-    navigate(item.route);
+ navigate(item.route, {
+  state: {
+    entityId: item.entityId,
+  },
+});
 
-    setSearch("");
+    setSearchQuery("");
+setSearchResults([]);
 
     setShowSearch(false);
   };
@@ -256,28 +299,41 @@ const Navbar = () => {
   /* --------------------------------------- */
 
   
+const handleLogout = () => {
+  setShowProfile(false);
+  logout();
 
-  const handleLogout = () => {
-    console.log("Logout");
 
-    setShowProfile(false);
+  navigate("/login", {
+    replace: true,
+  });
+};
 
-    // Later
+/* --------------------------------------- */
+/* Logged In User                          */
+/* --------------------------------------- */
 
-    // localStorage.removeItem("token");
+const userName = user?.name || "Administrator";
 
-    // navigate("/login");
-  };
+const userRole = user?.role || "Admin";
 
+const avatarLetter =
+  user?.name?.charAt(0).toUpperCase() || "A";
+
+  const userEmail = user?.email || "";
   /* --------------------------------------- */
   /* Notification Toggle                     */
   /* --------------------------------------- */
 
-  const toggleNotifications = () => {
-    setShowNotifications((prev) => !prev);
+ const toggleNotifications = async () => {
+  if (!showNotifications) {
+    await fetchNotifications();
+  }
 
-    setShowProfile(false);
-  };
+  setShowNotifications((prev) => !prev);
+
+  setShowProfile(false);
+};
 
   /* --------------------------------------- */
   /* Profile Toggle                          */
@@ -292,12 +348,32 @@ const Navbar = () => {
   /* --------------------------------------- */
   /* Search Input                            */
   /* --------------------------------------- */
+// const handleSearch = (e) => {
+//   const value = e.target.value;
 
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
+//   setSearchQuery(value);
+//   setShowSearch(true);
 
-    setShowSearch(true);
-  };
+//   fetchSearchResults(value);
+// };
+
+const handleSearch = (e) => {
+  const value = e.target.value;
+
+  setSearchQuery(value);
+  setShowSearch(true);
+};
+
+const iconMap = {
+  Product: Package,
+  Customer: Users,
+  Order: ShoppingBag,
+};
+
+
+
+
+
   return (
   <header
     className="
@@ -355,7 +431,7 @@ const Navbar = () => {
 
         <input
           
-          value={search}
+          value={searchQuery}
           onChange={handleSearch}
           onFocus={() => setShowSearch(true)}
           type="text"
@@ -382,7 +458,7 @@ const Navbar = () => {
         />
                 {/* Search Results */}
 
-        {showSearch && search.length > 0 && (
+        {showSearch && searchQuery.length > 0 && (
 
           <div
             className="
@@ -415,11 +491,19 @@ sm:translate-x-0
 "
           >
 
-            {filteredResults.length > 0 ? (
+            {searchLoading ? (
+  <div className="px-6 py-6 text-center text-slate-500">
+    <div className="flex justify-center py-6">
+  <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+</div>
+  </div>
+) : searchResults.length > 0 ? (
 
-              filteredResults.map((item) => {
+              searchResults.map((item) => {
 
-                const Icon = item.icon;
+                const Icon = iconMap[item.type];
+
+                
 
                 return (
 
@@ -467,7 +551,7 @@ sm:translate-x-0
                       </p>
 
                       <p className="text-xs text-slate-500">
-                        {item.type}
+                        {item.subtitle}
                       </p>
 
                     </div>
@@ -535,7 +619,7 @@ sm:translate-x-0
       >
 
         <button
-          onClick={toggleNotifications}
+         onClick={toggleNotifications}
           className="
             relative
             rounded-xl
@@ -654,65 +738,87 @@ sm:translate-x-0
 
             </div>
 
+            
+
             {/* List */}
 
-            <div className="max-h-96 overflow-y-auto">
+<div className="max-h-96 overflow-y-auto">
 
-              {notifications.map((notification) => (
+  {notificationLoading ? (
 
-                <button
-                  key={notification.id}
-                  className="
-                    flex
-                    w-full
-                    gap-4
-                    border-b
-                    border-slate-100
-                    dark:border-[#24322D]
-                    px-5
-                    py-4
-                    text-left
-                    transition
-                    hover:bg-orange-50
-                    dark:hover:bg-[#1D2A25]
-                  "
-                >
+    <div className="flex justify-center py-8">
+      <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+    </div>
 
-                  <div
-                    className={`
-                      mt-1
-                      h-2.5
-                      w-2.5
-                      rounded-full
-                      ${
-                        notification.unread
-                          ? "bg-orange-500"
-                          : "bg-slate-300"
-                      }
-                    `}
-                  />
+  ) : notifications.length > 0 ? (
 
-                  <div className="flex-1">
+    notifications.map((notification) => (
+      
 
-                    <p className="font-medium text-slate-900 dark:text-white">
-                      {notification.title}
-                    </p>
+      <button
+        key={notification.id}
+        onClick={() => handleNotificationClick(notification)}
+        className="
+          flex
+          w-full
+          gap-4
+          border-b
+          border-slate-100
+          dark:border-[#24322D]
+          px-5
+          py-4
+          text-left
+          transition
+          hover:bg-orange-50
+          dark:hover:bg-[#1D2A25]
+        "
+      >
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      {notification.subtitle}
-                    </p>
+        <div
+          className={`
+            mt-1
+            h-2.5
+            w-2.5
+            rounded-full
+            ${
+              notification.priority === "high"
+                ? "bg-red-500"
+                : notification.priority === "medium"
+                ? "bg-orange-500"
+                : "bg-green-500"
+            }
+          `}
+        />
 
-                    <p className="mt-2 text-xs text-slate-400">
-                      {notification.time}
-                    </p>
+        <div className="flex-1">
 
-                  </div>
+          <p className="font-medium text-slate-900 dark:text-white">
+            {notification.title}
+          </p>
 
-                </button>
+          <p className="mt-1 text-sm text-slate-500">
+            {notification.message}
+          </p>
 
-              ))}
+          <p className="mt-2 text-xs text-slate-400">
+            {new Date(notification.createdAt).toLocaleString()}
+          </p>
 
-            </div>
+        </div>
+
+      </button>
+
+    ))
+
+  ) : (
+
+    <div className="py-8 text-center text-slate-500">
+      No notifications
+    </div>
+
+  )}
+
+</div>
 
           </div>
 
@@ -742,29 +848,29 @@ sm:translate-x-0
         >
 
           <div
-            className="
-              flex
-              h-10
-              w-10
-              items-center
-              justify-center
-              rounded-full
-              bg-[#D6B86B]
-              font-semibold
-              text-[#0F1412]
-            "
-          >
-            M
-          </div>
+  className="
+    flex
+    h-10
+    w-10
+    items-center
+    justify-center
+    rounded-full
+    bg-[#D6B86B]
+    font-semibold
+    text-[#0F1412]
+  "
+>
+  {avatarLetter}
+</div>
 
           <div className="hidden text-left sm:block">
 
             <p className="text-sm font-semibold text-slate-900 dark:text-white">
-              Mohit
+              {userName}
             </p>
 
             <p className="text-xs text-slate-500">
-              Administrator
+              {userRole}
             </p>
 
           </div>
@@ -813,20 +919,24 @@ sm:translate-x-0
                     text-[#0F1412]
                   "
                 >
-                  M
+                   {avatarLetter}
                 </div>
 
                 <div>
 
-                  <h3 className="font-semibold text-slate-900 dark:text-white">
-                    Mohit
-                  </h3>
+  <h3 className="font-semibold text-slate-900 dark:text-white">
+    {userName}
+  </h3>
 
-                  <p className="text-sm text-slate-500">
-                    Administrator
-                  </p>
+  <p className="text-sm text-slate-500 capitalize">
+    {userRole}
+  </p>
 
-                </div>
+  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500 truncate">
+    {userEmail}
+  </p>
+
+</div>
 
               </div>
 
@@ -837,10 +947,11 @@ sm:translate-x-0
             <div className="py-2">
 
          <button
-  onClick={() => {
-    navigate("/settings");
-    setShowProfile(false);
-  }}
+ onClick={() => {
+  setShowProfile(false);
+
+  navigate("/settings");
+}}
   className="
     flex
     w-full
