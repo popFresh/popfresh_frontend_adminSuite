@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
@@ -185,6 +186,7 @@ const ManualShipmentModal = ({
       </div>
     </>
   );
+
 };
 
 export default ManualShipmentModal;

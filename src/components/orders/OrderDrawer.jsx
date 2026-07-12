@@ -58,7 +58,8 @@ const fetchOrder = async () => {
     setLoading(true);
 
     const data = await getOrderById(order.id);
-
+console.log(data);
+console.log("Shipment =", data.shipment);
     setOrderDetails(data);
 
   } catch (err) {
@@ -117,6 +118,8 @@ PACKED: "Open Fulfillment",
 //   SHIPPED: "Mark as Delivered",
 SHIPPED: "View Fulfillment",
 
+OUT_FOR_DELIVERY: "View Fulfillment",
+
   DELIVERED: "Delivered",
 
   CANCELLED: "Cancelled",
@@ -143,12 +146,45 @@ if (!orderDetails) return null;
   "PROCESSING",
   "PACKED",
   "SHIPPED",
+  "OUT_FOR_DELIVERY",
 ].includes(orderDetails.status);
 
 const address =
   orderDetails.customer?.addresses?.[0];
 
 
+
+
+const getStatusDate = () => {
+  switch (orderDetails.status) {
+    case "PROCESSING":
+      return orderDetails.processedAt;
+
+    case "PACKED":
+      return orderDetails.packedAt;
+
+    case "SHIPPED":
+      return orderDetails.shippedAt;
+
+    case "OUT_FOR_DELIVERY":
+      return orderDetails.outForDeliveryAt;
+
+    case "DELIVERED":
+      return orderDetails.deliveredAt;
+
+    case "CANCELLED":
+      return orderDetails.cancelledAt;
+
+    case "RETURNED":
+      return orderDetails.returnedAt;
+
+    default:
+      return orderDetails.createdAt;
+  }
+};
+
+const statusDate =
+  getStatusDate() || orderDetails.createdAt;
 
   return (
     <>
@@ -425,7 +461,7 @@ orderDetails.shippingPhone}
 
                 <CalendarDays size={15} />
 
-                {new Date(orderDetails.createdAt).toLocaleString("en-IN", {
+                {new Date(statusDate).toLocaleString("en-IN", {
   day: "2-digit",
   month: "long",
   year: "numeric",
