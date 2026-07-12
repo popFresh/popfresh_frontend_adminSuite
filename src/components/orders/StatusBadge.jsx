@@ -29,6 +29,13 @@ const statusStyles = {
     border: "border-cyan-200",
   },
 
+  OUT_FOR_DELIVERY: {
+    label: "Out For Delivery",
+    bg: "bg-indigo-50",
+    text: "text-indigo-700",
+    border: "border-indigo-200",
+},
+
   DELIVERED: {
     label: "Delivered",
     bg: "bg-emerald-50",

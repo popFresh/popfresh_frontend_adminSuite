@@ -18,9 +18,14 @@ if (
 }
 
 // Packed & Shipped
-if (
-  ["PACKED", "SHIPPED"].includes(order.status)
-) {
+
+const fulfillmentStatuses = [
+  "PACKED",
+  "SHIPPED",
+  "OUT_FOR_DELIVERY",
+];
+
+if (fulfillmentStatuses.includes(order.status)) {
   return (
     <FulfillmentWorkflow
       order={order}

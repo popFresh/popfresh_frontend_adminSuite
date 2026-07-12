@@ -33,6 +33,11 @@ const ShipmentInfo = ({ shipment }) => {
 
     }
 
+    // Manual shipments don't have Shiprocket documents
+if (shipment.provider === "MANUAL") {
+  return null;
+}
+
     return (
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
 

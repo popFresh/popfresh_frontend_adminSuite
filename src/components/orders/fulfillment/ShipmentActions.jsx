@@ -11,6 +11,10 @@ import {
     schedulePickup,
     getTracking,
     cancelShipment,
+
+
+    markManualShipmentDelivered,
+    markManualShipmentOutForDelivery,
 } from "../../../api/logistics.api.js";
 
 import { getFulfillmentActions } from "../../../utils/fulfillmentActions";
@@ -37,6 +41,7 @@ const ShipmentActions = ({
     const actions =
         getFulfillmentActions(shipment);
 
+        
     // =====================================================
     // Assign AWB
     // =====================================================
@@ -94,6 +99,30 @@ await refreshOrder();
             setLoading(key);
 
             switch (key) {
+
+                case "manualOutForDelivery":
+
+    await markManualShipmentOutForDelivery(
+        order.id
+    );
+
+    toast.success(
+        "Marked Out For Delivery."
+    );
+
+    break;
+
+case "manualDelivered":
+
+    await markManualShipmentDelivered(
+        order.id
+    );
+
+    toast.success(
+        "Order delivered successfully."
+    );
+
+    break;
 
                 case "createShipment":
 
@@ -176,7 +205,7 @@ await refreshOrder();
 
     break;
 
-                    break;
+                    
 
                 case "cancelShipment":
 

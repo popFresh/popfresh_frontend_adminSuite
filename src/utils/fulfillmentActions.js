@@ -9,17 +9,39 @@ export const getFulfillmentActions = (shipment) => {
     // =====================================================
 
     if (!shipment) {
+    return [];
+}
+     if (shipment.provider !== "SHIPROCKET") {
 
-        return [
-            {
-                key: "createShipment",
-                label: "Create Shipment",
+        const actions = [];
+
+        if (shipment.status === "CREATED") {
+
+            actions.push({
+                key: "manualOutForDelivery",
+                label: "Mark Out For Delivery",
                 variant: "primary",
                 disabled: false,
-            },
-        ];
+            });
+
+        }
+
+        if (shipment.status === "OUT_FOR_DELIVERY") {
+
+            actions.push({
+                key: "manualDelivered",
+                label: "Mark Delivered",
+                variant: "primary",
+                disabled: false,
+            });
+
+        }
+
+        return actions;
 
     }
+
+
 
     const actions = [];
 
