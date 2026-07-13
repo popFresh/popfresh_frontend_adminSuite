@@ -131,3 +131,61 @@ export const cancelShipment = async (orderId) => {
     return data;
 
 };
+
+// =====================================================
+// CREATE MANUAL SHIPMENT
+// =====================================================
+
+export const createManualShipment = async (
+  orderId,
+  shipmentData
+) => {
+
+  const { data } = await api.post(
+    `/orders/${orderId}/manual-shipment`,
+    shipmentData
+  );
+
+  return data;
+
+};
+
+// =====================================================
+// MARK MANUAL SHIPMENT OUT FOR DELIVERY
+// =====================================================
+
+export const markManualShipmentOutForDelivery =
+  async (
+    orderId,
+    data = {}
+  ) => {
+
+    const { data: response } =
+      await api.patch(
+        `/orders/${orderId}/manual-shipment/out-for-delivery`,
+        data
+      );
+
+    return response;
+
+  };
+
+// =====================================================
+// MARK MANUAL SHIPMENT DELIVERED
+// =====================================================
+
+export const markManualShipmentDelivered =
+  async (
+    orderId,
+    data = {}
+  ) => {
+
+    const { data: response } =
+      await api.patch(
+        `/orders/${orderId}/manual-shipment/delivered`,
+        data
+      );
+
+    return response;
+
+  };

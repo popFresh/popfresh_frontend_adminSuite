@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-
 import { IndianRupee, Package, ShoppingBag, Users } from "lucide-react";
+import { useSocket } from "../context/SocketContext";
 
 import { getDashboard } from "../api/dashboard.api";
 
@@ -16,24 +16,40 @@ import CustomerOverview from "../components/dashboard/CustomerOverview";
 const Dashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { socket } = useSocket();
 
-  const fetchDashboard = async () => {
-    try {
+const fetchDashboard = async (showLoader = true) => {
+  try {
+    if (showLoader) {
       setLoading(true);
+    }
 
-      const data = await getDashboard();
-
-      setDashboard(data);
-    } catch (error) {
-      console.error("Failed to fetch dashboard:", error);
-    } finally {
+    const data = await getDashboard();
+    setDashboard(data);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    if (showLoader) {
       setLoading(false);
     }
-  };
-
+  }
+};
   useEffect(() => {
     fetchDashboard();
   }, []);
+
+  useEffect(() => {
+  const handleDashboardUpdate = async () => {
+    await fetchDashboard(false);
+  };
+
+  socket.on("dashboard:update", handleDashboardUpdate);
+
+  return () => {
+    socket.off("dashboard:update", handleDashboardUpdate);
+  };
+}, [socket]);
+
 
   if (loading) {
     return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { useSocket } from "../context/SocketContext";
 import PaymentsHero from "../components/payments/PaymentsHero";
 import PaymentTable from "../components/payments/PaymentTable";
 import PaymentDrawer from "../components/payments/PaymentDrawer";
@@ -20,8 +20,9 @@ import {
 } from "../api/payment.api";
 
 const Payments = () => {
-
+  
   const [payments, setPayments] = useState([]);
+  
 
   const [stats, setStats] = useState({
 
@@ -64,44 +65,36 @@ const Payments = () => {
   const [viewLoadingId, setViewLoadingId] =
   useState(null);
 
+const { socket } = useSocket();
+
   //////////////////////////////////////////////////////////
   // FETCH PAYMENTS
   //////////////////////////////////////////////////////////
 
-  const fetchPayments = async () => {
-
-    try {
-
+ const fetchPayments = async (showLoader = true) => {
+  try {
+    if (showLoader) {
       setLoading(true);
-
-      const data = await getPayments({
-
-        page,
-
-        limit: 10,
-
-        search: searchTerm,
-
-        status,
-
-      });
-
-      setPayments(data.payments);
-
-      setPagination(data.pagination);
-
-    } catch (err) {
-
-      console.error(err);
-
-    } finally {
-
-      setLoading(false);
-
     }
 
-  };
+    const data = await getPayments({
+      page,
+      limit: 10,
+      search: searchTerm,
+      status,
+    });
 
+    setPayments(data.payments);
+    setPagination(data.pagination);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    if (showLoader) {
+      setLoading(false);
+    }
+  }
+};
   //////////////////////////////////////////////////////////
   // FETCH STATS
   //////////////////////////////////////////////////////////
@@ -137,6 +130,25 @@ const Payments = () => {
     fetchStats();
 
   }, []);
+
+  useEffect(() => {
+  const handlePaymentUpdated = async () => {
+  try {
+    await Promise.all([
+      fetchPayments(false),
+      fetchStats(),
+    ]);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+  socket.on("payment:updated", handlePaymentUpdated);
+
+  return () => {
+    socket.off("payment:updated", handlePaymentUpdated);
+  };
+}, [socket, page, searchTerm, status]);
 
   //////////////////////////////////////////////////////////
   // REFRESH

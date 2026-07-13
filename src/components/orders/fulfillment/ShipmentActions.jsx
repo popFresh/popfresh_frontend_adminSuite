@@ -3,6 +3,9 @@ import { toast } from "react-toastify";
 
 import {
     createShipment,
+    createManualShipment,
+    markManualShipmentOutForDelivery,
+    markManualShipmentDelivered,
     getServiceability,
     assignAwb,
     generateLabel,
@@ -14,6 +17,7 @@ import {
 } from "../../../api/logistics.api.js";
 
 import { getFulfillmentActions } from "../../../utils/fulfillmentActions";
+import ManualShipmentModal from "./ManualShipmentModal";
 
 import CourierSelectorModal from "./CourierSelectorModal";
 
@@ -33,6 +37,9 @@ const ShipmentActions = ({
 
     const [recommendedCourier, setRecommendedCourier] =
         useState(null);
+
+        const [manualModalOpen, setManualModalOpen] =
+    useState(false);
 
     const actions =
         getFulfillmentActions(shipment);
@@ -83,6 +90,41 @@ await refreshOrder();
 
     };
 
+
+
+    const handleCreateManualShipment = async (data) => {
+    try {
+
+        setLoading("manualShipment");
+
+        await createManualShipment(
+            order.id,
+            data
+        );
+
+        toast.success(
+            "Manual shipment created successfully."
+        );
+
+        setManualModalOpen(false);
+
+        await refreshOrder();
+
+    } catch (err) {
+
+        console.error(err);
+
+        toast.error(
+            err?.response?.data?.message ||
+            "Failed to create manual shipment."
+        );
+
+    } finally {
+
+        setLoading("");
+
+    }
+};
     // =====================================================
     // Action Handler
     // =====================================================
@@ -94,6 +136,34 @@ await refreshOrder();
             setLoading(key);
 
             switch (key) {
+
+                case "manualShipment":
+
+    setLoading("");
+
+    setManualModalOpen(true);
+
+    return;
+
+    case "manualOutForDelivery":
+
+    await markManualShipmentOutForDelivery(order.id);
+
+    toast.success(
+        "Marked Out For Delivery."
+    );
+
+    break;
+
+    case "manualDelivered":
+
+    await markManualShipmentDelivered(order.id);
+
+    toast.success(
+        "Marked Delivered."
+    );
+
+    break;
 
                 case "createShipment":
 
@@ -298,6 +368,16 @@ loading === action.key
                 }}
                 onSelect={handleAssignAwb}
             />
+
+            <ManualShipmentModal
+    open={manualModalOpen}
+    loading={loading === "manualShipment"}
+    onClose={() => {
+        setManualModalOpen(false);
+        setLoading("");
+    }}
+    onSubmit={handleCreateManualShipment}
+/>
         </>
     );
 };

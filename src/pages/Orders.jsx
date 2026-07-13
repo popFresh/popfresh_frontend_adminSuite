@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSocket } from "../context/SocketContext";
 import {
   getOrders,
   getOrderStats,
@@ -66,6 +67,8 @@ const [pagination, setPagination] = useState({
   
 const location = useLocation();
 const navigate = useNavigate();
+const { socket } = useSocket();
+
   // ==================================================
   // Drawer
   // ==================================================
@@ -79,27 +82,28 @@ const navigate = useNavigate();
   // ==================================================
   // Fetch Orders
   // ==================================================
-const fetchOrders = async (filters = {}) => {
+const fetchOrders = async ({
+  pageNo = page,
+  status =
+    selectedStatus === "All"
+      ? ""
+      : selectedStatus.toUpperCase(),
+  search = searchTerm,
+  sortBy = sort,
+} = {}) => {
+
   try {
     setLoading(true);
 
     const result = await getOrders({
-  page,
-  status:
-    selectedStatus === "All"
-      ? ""
-      : selectedStatus.toUpperCase(),
-
-  search: searchTerm,
-
-  sort,
-});
+      page: pageNo,
+      status,
+      search,
+      sort: sortBy,
+    });
 
     setOrders(result.orders);
     setPagination(result.pagination);
-
-  } catch (err) {
-    console.error(err);
 
   } finally {
     setLoading(false);
@@ -156,6 +160,23 @@ useEffect(() => {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  useEffect(() => {
+  const handleOrderUpdated = () => {
+    
+    
+     Promise.all([
+    fetchOrders(),
+    fetchStats(),
+  ]);
+  };
+
+  socket.on("order:updated", handleOrderUpdated);
+
+  return () => {
+    socket.off("order:updated", handleOrderUpdated);
+  };
+}, [socket, page, selectedStatus, searchTerm, sort]);
 
   // ==================================================
   // Orders Fetch (Search + Status + Sort)

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation,useNavigate } from "react-router-dom";
+import { useSocket } from "../context/SocketContext";
 import CustomersHero from "../components/customers/CustomersHero";
 import CustomersTable from "../components/customers/CustomersTable";
 import CustomerDrawer from "../components/customers/CustomerDrawer";
@@ -54,6 +55,7 @@ const Customers = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const { socket } = useSocket();
 
   //////////////////////////////////////////////////////////
   // FETCH CUSTOMERS
@@ -122,6 +124,20 @@ useEffect(() => {
   //////////////////////////////////////////////////////////
   // EFFECTS
   //////////////////////////////////////////////////////////
+useEffect(() => {
+  const handleCustomerCreated = async () => {
+    await Promise.all([
+      fetchCustomers(),
+      fetchStats(),
+    ]);
+  };
+
+  socket.on("customer:created", handleCustomerCreated);
+
+  return () => {
+    socket.off("customer:created", handleCustomerCreated);
+  };
+}, [socket]);
 
   useEffect(() => {
     fetchCustomers();

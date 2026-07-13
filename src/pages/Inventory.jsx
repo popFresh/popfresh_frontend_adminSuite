@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useSocket } from "../context/SocketContext";
 
 import InventoryHero from "../components/inventory/InventoryHero";
 import InventoryTable from "../components/inventory/InventoryTable";
@@ -32,7 +33,7 @@ useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-
+const { socket } = useSocket();
 
 //   const fetchInventory = async () => {
 //   try {
@@ -76,6 +77,8 @@ const inventory = products.map((product) => {
     status = "Low Stock";
   }
 
+  
+
   return {
     ...product,
     productName: product.name,
@@ -103,6 +106,21 @@ useEffect(() => {
 }, []);
   
 
+useEffect(() => {
+  const handleInventoryUpdate = () => {
+    fetchInventory();
+  };
+
+  socket.on("product:created", handleInventoryUpdate);
+  socket.on("product:updated", handleInventoryUpdate);
+  socket.on("product:deleted", handleInventoryUpdate);
+
+  return () => {
+    socket.off("product:created", handleInventoryUpdate);
+    socket.off("product:updated", handleInventoryUpdate);
+    socket.off("product:deleted", handleInventoryUpdate);
+  };
+}, [socket]);
   const filteredInventory = useMemo(() => {
     const search = searchTerm.toLowerCase();
 

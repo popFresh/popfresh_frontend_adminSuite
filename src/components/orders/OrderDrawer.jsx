@@ -4,6 +4,7 @@ import {
   updateOrderStatus,
 } from "../../api/order.api";
 import OrderTimeline from "./OrderTimeline";
+import { useSocket } from "../../context/SocketContext";
 import {
   X,
   Phone,
@@ -21,6 +22,8 @@ const [showWorkflow, setShowWorkflow] = useState(false);
 const [orderDetails, setOrderDetails] = useState(null);
 const [loading, setLoading] = useState(false);
 
+const { socket } = useSocket();
+
 useEffect(() => {
 
   if (!open || !order) return;
@@ -30,6 +33,23 @@ useEffect(() => {
   fetchOrder();
 
 }, [open, order]);
+
+useEffect(() => {
+  if (!open || !order) return;
+
+  const handleOrderUpdated = (updatedOrder) => {
+    // Ignore updates for other orders
+    if (updatedOrder.id !== order.id) return;
+
+    fetchOrder();
+  };
+
+  socket.on("order:updated", handleOrderUpdated);
+
+  return () => {
+    socket.off("order:updated", handleOrderUpdated);
+  };
+}, [socket, open, order]);
 
 const fetchOrder = async () => {
 
