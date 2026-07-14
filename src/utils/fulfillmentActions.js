@@ -36,34 +36,36 @@ export const getFulfillmentActions = (shipment) => {
 
     if (shipment.provider === "MANUAL") {
 
-        const actions = [];
+    const actions = [];
 
-        if (shipment.status === "CREATED") {
+    if (shipment.status === "CREATED") {
 
-            actions.push({
-                key: "manualOutForDelivery",
-                label: "Mark Out For Delivery",
-                variant: "primary",
-                disabled: false,
-            });
+        actions.push({
+            key: "manualOutForDelivery",
+            label: "Mark Out For Delivery",
+            variant: "primary",
+            disabled: false,
+        });
 
-        }
-
-        if (shipment.status === "OUT_FOR_DELIVERY") {
-
-            actions.push({
-                key: "manualDelivered",
-                label: "Mark Delivered",
-                variant: "primary",
-                disabled: false,
-            });
-
-        }
-
-        return actions;
+        
 
     }
 
+    if (shipment.status === "OUT_FOR_DELIVERY") {
+
+        actions.push({
+            key: "manualDelivered",
+            label: "Mark Delivered",
+            variant: "primary",
+            disabled: false,
+        });
+
+      
+
+    }
+
+    return actions;
+}
     // =====================================================
     // SHIPROCKET SHIPMENT
     // =====================================================

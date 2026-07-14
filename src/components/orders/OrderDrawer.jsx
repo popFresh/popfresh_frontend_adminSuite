@@ -131,13 +131,13 @@ OUT_FOR_DELIVERY: "View Fulfillment",
 
 if (!open || !order) return null;
 
-if (loading) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      Loading...
-    </div>
-  );
-}
+// if (loading) {
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center">
+//       Loading...
+//     </div>
+//   );
+// }
 
 if (!orderDetails) return null;
 

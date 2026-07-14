@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { createManualShipment } from "../../../api/logistics.api";
 import ShipmentInfo from "./ShipmentInfo";
 import ShipmentActions from "./ShipmentActions";
 import TrackingTimeline from "./TrackingTimeline";
@@ -13,6 +13,25 @@ const FulfillmentWorkflow = ({
 
     const [manualModalOpen, setManualModalOpen] =
         useState(false);
+        const [loading, setLoading] = useState(false);
+
+
+        const handleCreateManualShipment = async (form) => {
+    try {
+        setLoading(true);
+
+        await createManualShipment(order.id, form);
+
+        toast.success("Manual shipment created successfully.");
+
+        setManualModalOpen(false);
+
+        await refreshOrder();
+
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
 
@@ -48,14 +67,15 @@ const FulfillmentWorkflow = ({
                 }
             />
 
-            <ManualShipmentModal
-                open={manualModalOpen}
-                onClose={() =>
-                    setManualModalOpen(false)
-                }
-                order={order}
-                refreshOrder={refreshOrder}
-            />
+
+<ManualShipmentModal
+    open={manualModalOpen}
+    loading={loading}
+    onClose={() =>
+        setManualModalOpen(false)
+    }
+    onSubmit={handleCreateManualShipment}
+/>
 
         </div>
 
