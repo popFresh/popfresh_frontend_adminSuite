@@ -32,12 +32,12 @@ export const SocketProvider = ({ children }) => {
 });
 
     const handleConnect = () => {
-      console.log("🟢 Socket Connected:", socket.id);
+      // console.log("🟢 Socket Connected:", socket.id);
       setIsConnected(true);
     };
 
     const handleDisconnect = () => {
-      console.log("🔴 Socket Disconnected");
+      // console.log("🔴 Socket Disconnected");
       setIsConnected(false);
     };
 

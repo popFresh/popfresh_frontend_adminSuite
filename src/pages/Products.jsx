@@ -62,7 +62,7 @@ const Products = () => {
       const response = await getProducts({
   isAdmin: true,
 });
-        console.log(response);
+        // console.log(response);
 
       setProducts(response.products || []);
 
@@ -111,7 +111,7 @@ const Products = () => {
   try {
     const categories = await getCategories();
 
-    console.log("Categories:", categories);
+    // console.log("Categories:", categories);
 
     setCategories(categories);
 
@@ -127,7 +127,7 @@ const Products = () => {
 
   useEffect(() => {
   const refreshProducts = async () => {
-    console.log("🔥 product event received");
+    
 
     await fetchProducts();
   };
