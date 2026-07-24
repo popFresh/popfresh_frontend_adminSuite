@@ -58,8 +58,16 @@ const fetchOrder = async () => {
     setLoading(true);
 
     const data = await getOrderById(order.id);
+    console.log("Shipment =", data.shipment);
+    console.table(
+  data.statusHistory.map((h) => ({
+    status: h.status,
+    note: h.note,
+    createdAt: h.createdAt,
+  }))
+);
 console.log(data);
-console.log("Shipment =", data.shipment);
+// console.log("Shipment =", data.shipment);
     setOrderDetails(data);
 
   } catch (err) {
