@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-
+import { updateOrderStatus } from "../../../api/order.api.js";
+import { AlertTriangle } from "lucide-react";
 import {
     createShipment,
+    
+    markManualShipmentOutForDelivery,
+    markManualShipmentDelivered,
     getServiceability,
     assignAwb,
     generateLabel,
@@ -13,11 +17,11 @@ import {
     cancelShipment,
 
 
-    markManualShipmentDelivered,
-    markManualShipmentOutForDelivery,
+
 } from "../../../api/logistics.api.js";
 
 import { getFulfillmentActions } from "../../../utils/fulfillmentActions";
+
 
 import CourierSelectorModal from "./CourierSelectorModal";
 
@@ -38,8 +42,13 @@ const ShipmentActions = ({
     const [recommendedCourier, setRecommendedCourier] =
         useState(null);
 
+        const [cancelReason, setCancelReason] = useState("");
+
+   
+
     const actions =
         getFulfillmentActions(shipment);
+
 
         
     // =====================================================
@@ -88,6 +97,9 @@ await refreshOrder();
 
     };
 
+
+
+    
     // =====================================================
     // Action Handler
     // =====================================================
@@ -100,29 +112,58 @@ await refreshOrder();
 
             switch (key) {
 
-                case "manualOutForDelivery":
 
-    await markManualShipmentOutForDelivery(
-        order.id
-    );
 
-    toast.success(
-        "Marked Out For Delivery."
-    );
 
-    break;
+
+case "manualOutForDelivery":
+
+  await markManualShipmentOutForDelivery(order.id);
+
+  toast.success(
+    "Marked Out For Delivery."
+  );
+
+  break;
 
 case "manualDelivered":
 
-    await markManualShipmentDelivered(
-        order.id
-    );
+  await markManualShipmentDelivered(order.id);
 
-    toast.success(
-        "Order delivered successfully."
-    );
+  toast.success(
+    "Marked Delivered."
+  );
 
-    break;
+  break;
+
+  case "manualCancel": {
+
+
+ if (!cancelReason.trim()) {
+  toast.error(
+    "Cancellation reason is required."
+  );
+  return;
+}
+
+await updateOrderStatus(order.id, {
+  status: "CANCELLED",
+  cancelReason: cancelReason.trim(),
+});
+
+setCancelReason("");
+
+toast.success(
+  "Order cancelled successfully."
+);
+
+  
+  break;
+}
+    
+
+   
+
 
                 case "createShipment":
 
@@ -307,7 +348,89 @@ loading === action.key
 
                 </div>
 
+                {shipment &&
+  shipment.provider === "MANUAL" &&
+  shipment.status !== "DELIVERED" &&
+  shipment.status !== "CANCELLED" && (
+
+    <div
+  className="
+    mt-8
+    rounded-2xl
+    border
+    border-red-200
+    bg-red-50
+    p-5
+  "
+>
+
+      <h4 className="flex items-center gap-2 text-base font-semibold text-red-700">
+    <AlertTriangle size={16} />
+    Danger Zone
+</h4>
+
+      <p className="mt-2 text-sm leading-6 text-red-600">
+  Cancelling this order will stop further processing and notify the customer.
+  This action cannot be undone.
+</p>
+
+      <textarea
+        rows={3}
+        value={cancelReason}
+        onChange={(e) =>
+          setCancelReason(e.target.value)
+        }
+        placeholder="Enter cancellation reason..."
+        className="
+          mt-4
+          w-full
+          rounded-xl
+          border
+          border-slate-300
+          p-3
+          text-sm
+          outline-none
+          focus:border-red-500
+        "
+      />
+
+      <button
+        onClick={() =>
+          handleAction("manualCancel")
+        }
+        disabled={
+          loading === "manualCancel" ||
+  !cancelReason.trim()
+        }
+        className={`
+  mt-4
+  w-full
+  rounded-xl
+  px-4
+  py-3
+  font-semibold
+  text-white
+  transition
+  ${
+    loading === "manualCancel" ||
+    !cancelReason.trim()
+      ? "cursor-not-allowed bg-red-300"
+      : "bg-red-600 hover:bg-red-700"
+  }
+`}
+        
+        >
+        {loading === "manualCancel"
+          ? "Cancelling..."
+          : "Cancel Order"}
+      </button>
+
+    </div>
+)}
+
+
             </div>
+
 
             <CourierSelectorModal
                 open={modalOpen}
@@ -327,6 +450,8 @@ loading === action.key
                 }}
                 onSelect={handleAssignAwb}
             />
+
+  
         </>
     );
 };

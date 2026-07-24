@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation,useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useSocket } from "../context/SocketContext";
 import ProductsHero from "../components/products/ProductsHero";
 import ProductGrid from "../components/products/ProductGrid";
 import ProductDrawer from "../components/products/ProductDrawer";
@@ -46,6 +47,7 @@ const Products = () => {
 
     const location = useLocation();
     const navigate = useNavigate();
+    const { socket } = useSocket();
 
   // ===========================================
   // FETCH PRODUCTS
@@ -60,7 +62,7 @@ const Products = () => {
       const response = await getProducts({
   isAdmin: true,
 });
-        console.log(response);
+        // console.log(response);
 
       setProducts(response.products || []);
 
@@ -109,7 +111,7 @@ const Products = () => {
   try {
     const categories = await getCategories();
 
-    console.log("Categories:", categories);
+    // console.log("Categories:", categories);
 
     setCategories(categories);
 
@@ -122,6 +124,24 @@ const Products = () => {
     fetchProducts();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+  const refreshProducts = async () => {
+    
+
+    await fetchProducts();
+  };
+
+  socket.on("product:created", refreshProducts);
+  socket.on("product:updated", refreshProducts);
+  socket.on("product:deleted", refreshProducts);
+
+  return () => {
+    socket.off("product:created", refreshProducts);
+    socket.off("product:updated", refreshProducts);
+    socket.off("product:deleted", refreshProducts);
+  };
+}, [socket]);
 
   // ===========================================
   // SEARCH

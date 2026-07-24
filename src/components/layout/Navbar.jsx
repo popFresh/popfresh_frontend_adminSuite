@@ -14,6 +14,7 @@ import {
   IndianRupee
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
 
 import {
   useState,
@@ -41,6 +42,7 @@ const Navbar = () => {
 
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { socket } = useSocket();
 
   
 
@@ -249,12 +251,16 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  const interval = setInterval(() => {
+  const handleNewNotification = () => {
     fetchNotifications();
-  }, 30000);
+  };
 
-  return () => clearInterval(interval);
-}, []);
+  socket.on("notification:new", handleNewNotification);
+
+  return () => {
+    socket.off("notification:new", handleNewNotification);
+  };
+}, [socket]);
 
   /* --------------------------------------- */
   /* Notification Helpers                    */
@@ -325,13 +331,18 @@ const avatarLetter =
   /* Notification Toggle                     */
   /* --------------------------------------- */
 
- const toggleNotifications = async () => {
-  if (!showNotifications) {
-    await fetchNotifications();
-  }
+//  const toggleNotifications = async () => {
+//   if (!showNotifications) {
+//     await fetchNotifications();
+//   }
 
+//   setShowNotifications((prev) => !prev);
+
+//   setShowProfile(false);
+// };
+
+const toggleNotifications = () => {
   setShowNotifications((prev) => !prev);
-
   setShowProfile(false);
 };
 

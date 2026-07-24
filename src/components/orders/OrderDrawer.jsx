@@ -4,6 +4,7 @@ import {
   updateOrderStatus,
 } from "../../api/order.api";
 import OrderTimeline from "./OrderTimeline";
+import { useSocket } from "../../context/SocketContext";
 import {
   X,
   Phone,
@@ -21,6 +22,8 @@ const [showWorkflow, setShowWorkflow] = useState(false);
 const [orderDetails, setOrderDetails] = useState(null);
 const [loading, setLoading] = useState(false);
 
+const { socket } = useSocket();
+
 useEffect(() => {
 
   if (!open || !order) return;
@@ -31,6 +34,23 @@ useEffect(() => {
 
 }, [open, order]);
 
+useEffect(() => {
+  if (!open || !order) return;
+
+  const handleOrderUpdated = (updatedOrder) => {
+    // Ignore updates for other orders
+    if (updatedOrder.id !== order.id) return;
+
+    fetchOrder();
+  };
+
+  socket.on("order:updated", handleOrderUpdated);
+
+  return () => {
+    socket.off("order:updated", handleOrderUpdated);
+  };
+}, [socket, open, order]);
+
 const fetchOrder = async () => {
 
   try {
@@ -38,9 +58,8 @@ const fetchOrder = async () => {
     setLoading(true);
 
     const data = await getOrderById(order.id);
-console.log(data);
-console.log("Shipment =", data.shipment);
-    setOrderDetails(data);
+
+setOrderDetails(data);
 
   } catch (err) {
 
@@ -111,13 +130,13 @@ OUT_FOR_DELIVERY: "View Fulfillment",
 
 if (!open || !order) return null;
 
-if (loading) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      Loading...
-    </div>
-  );
-}
+// if (loading) {
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center">
+//       Loading...
+//     </div>
+//   );
+// }
 
 if (!orderDetails) return null;
 

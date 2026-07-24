@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
+import { createManualShipment } from "../../../api/logistics.api";
 
 import ShipmentInfo from "./ShipmentInfo";
 import ShipmentActions from "./ShipmentActions";
@@ -7,60 +9,62 @@ import CreateShipmentCard from "./CreateShipmentCard";
 import ManualShipmentModal from "./ManualShipmentModal";
 
 const FulfillmentWorkflow = ({
-    order,
-    refreshOrder,
+  order,
+  refreshOrder,
 }) => {
 
-    const [manualModalOpen, setManualModalOpen] =
-        useState(false);
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    return (
+  const handleCreateManualShipment = async (form) => {
+    try {
+      setLoading(true);
 
-        <div className="mt-6 space-y-6">
+      await createManualShipment(order.id, form);
 
-            <ShipmentInfo
-                shipment={order.shipment}
-            />
+      toast.success("Manual shipment created successfully.");
 
-            {order.shipment ? (
+      setManualModalOpen(false);
 
-                <ShipmentActions
-                    order={order}
-                    shipment={order.shipment}
-                    refreshOrder={refreshOrder}
-                />
+      await refreshOrder();
 
-            ) : (
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <CreateShipmentCard
-                    order={order}
-                    refreshOrder={refreshOrder}
-                    onCreateManual={() =>
-                        setManualModalOpen(true)
-                    }
-                />
+  return (
+    <div className="mt-6 space-y-6">
 
-            )}
+      <ShipmentInfo shipment={order.shipment} />
 
-            <TrackingTimeline
-                history={
-                    order.shipment?.trackingHistory
-                }
-            />
+      {order.shipment ? (
+        <ShipmentActions
+          order={order}
+          shipment={order.shipment}
+          refreshOrder={refreshOrder}
+        />
+      ) : (
+        <CreateShipmentCard
+          order={order}
+          refreshOrder={refreshOrder}
+          onCreateManual={() => setManualModalOpen(true)}
+        />
+      )}
 
-            <ManualShipmentModal
-                open={manualModalOpen}
-                onClose={() =>
-                    setManualModalOpen(false)
-                }
-                order={order}
-                refreshOrder={refreshOrder}
-            />
+      <TrackingTimeline
+        history={order.shipment?.trackingHistory}
+      />
 
-        </div>
+      <ManualShipmentModal
+        open={manualModalOpen}
+        loading={loading}
+        onClose={() => setManualModalOpen(false)}
+        onSubmit={handleCreateManualShipment}
+      />
 
-    );
-
+    </div>
+  );
 };
 
 export default FulfillmentWorkflow;
